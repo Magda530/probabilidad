@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación Binomial Negativa</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .simulation {
+            background-color: #e9f7fe;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #results {
+            margin-top: 20px;
+        }
+        .child {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            margin: 5px;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+            font-weight: bold;
+        }
+        .healthy {
+            background-color: #a1d8a1;
+        }
+        .sick {
+            background-color: #ff9999;
+        }
+        .current {
+            border: 3px solid #333;
+            box-sizing: border-box;
+        }
+        #probability-calculation {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simulación de Distribución Binomial Negativa</h1>
+        <p><strong>Problema:</strong> Si la probabilidad es 0.40 de que un niño expuesto a una enfermedad contagiosa la contraiga, ¿cuál es la probabilidad de que el décimo niño expuesto a la enfermedad sea el tercero en contraerla?</p>
+        
+        <div class="simulation">
+            <h2>Simulación</h2>
+            <p>Probabilidad de contraer la enfermedad: <span id="prob-value">0.40</span></p>
+            <p>Número de niños expuestos: <span id="total-children">10</span></p>
+            <p>Número de enfermos requeridos: <span id="required-sick">3</span></p>
+            
+            <button id="simulate-btn">Realizar Simulación</button>
+            <button id="reset-btn">Reiniciar</button>
+            
+            <div id="children-container"></div>
+            
+            <div id="results">
+                <p>Resultados de la simulación:</p>
+                <p>Número de veces que el 10° niño es el 3° enfermo: <span id="success-count">0</span></p>
+                <p>Número total de simulaciones: <span id="total-simulations">0</span></p>
+                <p>Probabilidad estimada: <span id="estimated-prob">0.0000</span></p>
+                <p>Probabilidad teórica: <span id="theoretical-prob">0.0645</span> (6.45%)</p>
+            </div>
+        </div>
+        
+        <div id="probability-calculation">
+            <h3>Cálculo de la probabilidad teórica:</h3>
+            <p>P(X = 10) = C(9, 2) * (0.40)³ * (0.60)⁷</p>
+            <p>          = 36 * 0.064 * 0.0279936</p>
+            <p>          ≈ 0.0645 (6.45%)</p>
+        </div>
+    </div>
+
+    <script>
+        const simulateBtn = document.getElementById('simulate-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const childrenContainer = document.getElementById('children-container');
+        const successCountEl = document.getElementById('success-count');
+        const totalSimulationsEl = document.getElementById('total-simulations');
+        const estimatedProbEl = document.getElementById('estimated-prob');
+        
+        const p = 0.40;
+        const totalChildren = 10;
+        const requiredSick = 3;
+        
+        let successCount = 0;
+        let totalSimulations = 0;
+        
+        simulateBtn.addEventListener('click', () => {
+            // Realizar la simulación
+            totalSimulations++;
+            totalSimulationsEl.textContent = totalSimulations;
+            
+            // Limpiar el contenedor
+            childrenContainer.innerHTML = '';
+            
+            let sickCount = 0;
+            let tenthChildIsThirdSick = false;
+            
+            // Simular cada niño
+            for (let i = 1; i <= totalChildren; i++) {
+                const isSick = Math.random() < p;
+                if (isSick) sickCount++;
+                
+                const childEl = document.createElement('div');
+                childEl.className = `child ${isSick ? 'sick' : 'healthy'}`;
+                if (i === totalChildren) childEl.classList.add('current');
+                childEl.textContent = i;
+                childEl.title = `Niño ${i}: ${isSick ? 'Enfermo' : 'Sano'}`;
+                
+                childrenContainer.appendChild(childEl);
+                
+                // Verificar si el décimo niño es el tercer enfermo
+                if (i === totalChildren && sickCount === requiredSick) {
+                    tenthChildIsThirdSick = true;
+                }
+            }
+            
+            // Actualizar resultados
+            if (tenthChildIsThirdSick) {
+                successCount++;
+                successCountEl.textContent = successCount;
+            }
+            
+            // Calcular probabilidad estimada
+            const estimatedProb = successCount / totalSimulations;
+            estimatedProbEl.textContent = estimatedProb.toFixed(4);
+        });
+        
+        resetBtn.addEventListener('click', () => {
+            successCount = 0;
+            totalSimulations = 0;
+            successCountEl.textContent = '0';
+            totalSimulationsEl.textContent = '0';
+            estimatedProbEl.textContent = '0.0000';
+            childrenContainer.innerHTML = '';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Distribución de la suma Z</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f8;
+      color: #333;
+      padding: 30px;
+    }
+
+    h2, h3 {
+      color: #2c4d50;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background-color: #fff;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #dbb334;
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+
+    canvas {
+      margin-top: 30px;
+    }
+
+    button {
+      padding: 8px 16px;
+      font-size: 16px;
+      background-color: rgb(185, 165, 41);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #801c7d;
+    }
+  </style>
+</head>
+<body>
+  <h2>Distribución de Probabilidad</h2>
+  <p><strong>Urna:</strong> pelotas numeradas del 1 al 4. Se realizan 30 extracciones aleatorias de 2 pelotas sin reemplazo.</p>
+  <button onclick="generarDistribucion()">Generar Experimentos</button>
+
+  <div id="tablaExperimentos"></div>
+  <div id="tablaResumen"></div>
+
+  <h3>Histograma Experimental </h3>
+  <canvas id="graficoZExp" width="600" height="300"></canvas>
+
+  <h3>Histograma Teórico</h3>
+  <canvas id="graficoZTeo" width="600" height="300"></canvas>
+
+  <script>
+    let chartExp, chartTeo;
+
+    function generarDistribucion() {
+      const numPelotas = 4;
+      const numExperimentos = 30;
+      const resultados = [];
+      const conteoSuma = {};
+
+      // Simulación de 30 experimentos
+      for (let i = 0; i < numExperimentos; i++) {
+        const urna = [1, 2, 3, 4];
+        const pelotaA = urna.splice(Math.floor(Math.random() * urna.length), 1)[0];
+        const pelotaB = urna.splice(Math.floor(Math.random() * urna.length), 1)[0];
+        const suma = pelotaA + pelotaB;
+
+        resultados.push({ experimento: i + 1, pelotaA, pelotaB, suma });
+        conteoSuma[suma] = (conteoSuma[suma] || 0) + 1;
+      }
+
+      // Mostrar tabla de experimentos
+      let tablaExpHTML = `<h3>Tabla de Experimentos</h3><table><tr><th>#</th><th>Pelota A</th><th>Pelota B</th><th>Suma Z</th></tr>`;
+      resultados.forEach(r => {
+        tablaExpHTML += `<tr><td>${r.experimento}</td><td>${r.pelotaA}</td><td>${r.pelotaB}</td><td>${r.suma}</td></tr>`;
+      });
+      tablaExpHTML += `</table>`;
+      document.getElementById("tablaExperimentos").innerHTML = tablaExpHTML;
+
+      // Mostrar tabla de frecuencias y probabilidades
+      let tablaResumenHTML = `<h3>Frecuencia y Probabilidad</h3><table><tr><th>Suma Z</th><th>Frecuencia</th><th>Probabilidad</th></tr>`;
+      const etiquetas = [];
+      const probabilidades = [];
+
+      Object.keys(conteoSuma).sort((a, b) => a - b).forEach(suma => {
+        const frecuencia = conteoSuma[suma];
+        const prob = (frecuencia / numExperimentos).toFixed(3);
+        etiquetas.push(`Z = ${suma}`);
+        probabilidades.push(prob);
+        tablaResumenHTML += `<tr><td>${suma}</td><td>${frecuencia}</td><td>${prob}</td></tr>`;
+      });
+
+      tablaResumenHTML += `</table>`;
+      document.getElementById("tablaResumen").innerHTML = tablaResumenHTML;
+
+      // Gráfico experimental
+      if (chartExp) chartExp.destroy();
+      const ctxExp = document.getElementById('graficoZExp').getContext('2d');
+      chartExp = new Chart(ctxExp, {
+        type: 'bar',
+        data: {
+          labels: etiquetas,
+          datasets: [{
+            label: 'Probabilidad Experimental',
+            data: probabilidades,
+            backgroundColor: '#dbb334'
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 1
+            }
+          }
+        }
+      });
+
+      // Gráfico teórico (todas combinaciones posibles de 2 pelotas sin reemplazo)
+      const combinaciones = [];
+      for (let i = 1; i <= numPelotas; i++) {
+        for (let j = i + 1; j <= numPelotas; j++) {
+          combinaciones.push(i + j);
+        }
+      }
+
+      const conteoTeorico = {};
+      combinaciones.forEach(suma => {
+        conteoTeorico[suma] = (conteoTeorico[suma] || 0) + 1;
+      });
+
+      const etiquetasTeo = Object.keys(conteoTeorico).sort((a, b) => a - b).map(z => `Z = ${z}`);
+      const probTeoricas = Object.keys(conteoTeorico).sort((a, b) => a - b).map(z => (conteoTeorico[z] / combinaciones.length).toFixed(3));
+
+      if (chartTeo) chartTeo.destroy();
+      const ctxTeo = document.getElementById('graficoZTeo').getContext('2d');
+      chartTeo = new Chart(ctxTeo, {
+        type: 'bar',
+        data: {
+          labels: etiquetasTeo,
+          datasets: [{
+            label: 'Probabilidad Teórica',
+            data: probTeoricas,
+            backgroundColor: '#4d97a7'
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 1
+            }
+          }
+        }
+      });
+    }
+
+    // Ejecutar al cargar
+    window.onload = generarDistribucion;
+  </script>
+</body>
+</html>
