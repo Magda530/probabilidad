@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación Bernoulli - Productos Defectuosos</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-hover: #2980b9;
+            --success-color: #2ecc71;
+            --failure-color: #e74c3c;
+            --bg-color: #f8f9fa;
+            --card-color: #ffffff;
+            --text-color: #2c3e50;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+        
+        .card {
+            background-color: var(--card-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .formula-container {
+            background-color: #f1f5f9;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+        
+        .formula {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #1e40af;
+        }
+        
+        .radio-group {
+            margin: 20px 0;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 12px 15px;
+            background-color: #f1f5f9;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+        }
+        
+        .radio-option:hover {
+            background-color: #e2e8f0;
+        }
+        
+        .radio-option input {
+            width: auto;
+            margin-right: 15px;
+            transform: scale(1.2);
+        }
+        
+        .radio-option label {
+            font-weight: 500;
+            cursor: pointer;
+            flex-grow: 1;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+        
+        button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .result-container {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result-display {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .result-value {
+            display: inline-block;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            font-size: 42px;
+            font-weight: bold;
+            line-height: 120px;
+            margin: 20px auto;
+            color: white;
+            box-shadow: var(--box-shadow);
+            transition: all 0.5s ease;
+        }
+        
+        .success {
+            background-color: var(--success-color);
+            background: linear-gradient(135deg, var(--success-color), #27ae60);
+        }
+        
+        .failure {
+            background-color: var(--failure-color);
+            background: linear-gradient(135deg, var(--failure-color), #c0392b);
+        }
+        
+        .result-label {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 15px 0;
+        }
+        
+        .success-text {
+            color: var(--success-color);
+        }
+        
+        .failure-text {
+            color: var(--failure-color);
+        }
+        
+        .chart-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 40px auto;
+        }
+        
+        .probability-info {
+            display: flex;
+            justify-content: space-around;
+            margin: 25px 0;
+            text-align: center;
+        }
+        
+        .probability-box {
+            padding: 15px;
+            border-radius: var(--border-radius);
+            width: 45%;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .probability-success {
+            background-color: rgba(46, 204, 113, 0.1);
+            border: 1px solid var(--success-color);
+        }
+        
+        .probability-failure {
+            background-color: rgba(231, 76, 60, 0.1);
+            border: 1px solid var(--failure-color);
+        }
+        
+        .probability-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simulación de Bernoulli - Productos Defectuosos</h1>
+    
+    <div class="card">
+        <p>Tenemos un lote de productos donde la probabilidad de que un producto sea defectuoso es:</p>
+        
+        <div class="formula-container">
+            <span class="formula">P(X=1) = p = 3/5 = 0.6 (60%)</span><br>
+            <span class="formula">P(X=0) = 1 - p = 0.4 (40%)</span>
+        </div>
+        
+        <div class="radio-group">
+            <p><strong>Seleccione qué desea simular:</strong></p>
+            
+            <div class="radio-option">
+                <input type="radio" id="defectuoso" name="tipo" value="1" checked>
+                <label for="defectuoso">Producto defectuoso (Éxito, X=1)</label>
+            </div>
+            
+            <div class="radio-option">
+                <input type="radio" id="no-defectuoso" name="tipo" value="0">
+                <label for="no-defectuoso">Producto no defectuoso (Fracaso, X=0)</label>
+            </div>
+        </div>
+        
+        <button onclick="realizarSimulacion()">Realizar Simulación</button>
+    </div>
+    
+    <div class="card result-container" id="result">
+        <h2 style="text-align: center;">Resultado de la Simulación</h2>
+        
+        <div class="result-display">
+            <div id="resultValue" class="result-value"></div>
+            <div id="resultLabel" class="result-label"></div>
+        </div>
+        
+        <div class="probability-info">
+            <div class="probability-box probability-success">
+                <div>Probabilidad de éxito</div>
+                <div class="probability-value">0.6</div>
+                <div>(60%)</div>
+            </div>
+            
+            <div class="probability-box probability-failure">
+                <div>Probabilidad de fracaso</div>
+                <div class="probability-value">0.4</div>
+                <div>(40%)</div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="bernChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        let myChart = null;
+        const p = 0.6; // Probabilidad de éxito (3 defectuosos de 5)
+        
+        function realizarSimulacion() {
+            const x = parseInt(document.querySelector('input[name="tipo"]:checked').value);
+            const resultValue = document.getElementById('resultValue');
+            const resultLabel = document.getElementById('resultLabel');
+            
+            // Determinar el resultado
+            const resultado = x;
+            const esExito = resultado === 1;
+            
+            //  resultado
+            resultValue.className = esExito ? 'result-value success' : 'result-value failure';
+            resultValue.textContent = resultado;
+            
+            // etiqueta
+            resultLabel.className = esExito ? 'result-label success-text' : 'result-label failure-text';
+            resultLabel.textContent = esExito 
+                ? 'ÉXITO: Producto defectuoso encontrado'
+                : 'FRACASO: Producto no defectuoso encontrado';
+            
+            // Mostrar la sección de resultados
+            document.getElementById('result').style.display = 'block';
+            
+            // Crear o actualizar el gráfico
+            const ctx = document.getElementById('bernChart').getContext('2d');
+            const data = esExito ? [1, 0] : [0, 1];
+            
+            if (myChart) {
+                myChart.data.datasets[0].data = data;
+                myChart.update();
+            } else {
+                myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Éxito (X=1)', 'Fracaso (X=0)'],
+                        datasets: [{
+                            data: data,
+                            backgroundColor: [
+                                'rgba(46, 204, 113, 0.7)',
+                                'rgba(231, 76, 60, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(46, 204, 113, 1)',
+                                'rgba(231, 76, 60, 1)'
+                            ],
+                            borderWidth: 2,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 1,
+                                ticks: {
+                                    stepSize: 1
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                enabled: false
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Efecto de animación
+            resultValue.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                resultValue.style.transform = 'scale(1)';
+            }, 300);
+            
+            // Desplazamiento suave a los resultados
+            document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Ejecutar primera simulación al cargar
+        window.addEventListener('load', () => {
+            realizarSimulacion();
+        });
+    </script>
+</body>
+</html>
